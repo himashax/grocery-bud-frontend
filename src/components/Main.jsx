@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Grocery_List from './Grocery-List'; 
 import instance from './axios';
-import axios from 'axios';
 
 function Main() {
 
@@ -24,10 +23,8 @@ function Main() {
             console.error('Something went wrong!', error);
         });
 
-        console.log(newItem)
+        setItem("");
     }
-
-    
 
     useEffect(() => {
         async function fetchData() {
@@ -35,7 +32,17 @@ function Main() {
           setGroceryList(request.data);
         }
         fetchData();
-    }, [])
+    }, [groceryList])
+
+    const deleteGroceryItem = (id) => {
+        instance.delete(`/${id}`)
+        .then(response => {
+            console.log("Status: ", response.status);
+            console.log("Data: ", response.data);
+        }).catch(error => {
+            console.error('Something went wrong!', error);
+        });
+    }
 
 
 
@@ -50,14 +57,16 @@ function Main() {
                 placeholder='e.g. eggs'
                 value={ item }
                 onChange={(e) => setItem(e.target.value)} />   
-            <button type='submit' className="submit-btn">
+            <button type='submit' className="submit-btn"> Submit
             </button>
         </div>
     </form>
 
       {  groceryList.length > 0 &&
       <div className="grocery-container">
-            <Grocery_List groceryList = { groceryList } />
+            <Grocery_List 
+                groceryList = { groceryList } 
+                deleteGroceryItem = { deleteGroceryItem } />
             <button className="clear-btn">
                 clear items
             </button>

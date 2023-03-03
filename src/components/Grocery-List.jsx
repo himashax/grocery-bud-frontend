@@ -2,7 +2,7 @@ import React from 'react';
 import './grocery-bud.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 
-function Grocery_List({ groceryList }) {
+function Grocery_List({ groceryList, deleteGroceryItem }) {
     return ( <div>
         {
             groceryList.map(item => {
@@ -15,7 +15,7 @@ function Grocery_List({ groceryList }) {
                     <button type='button' className="edit-btn">
                     <FaEdit />
                     </button>
-                    <button type='button' className="delete-btn">
+                    <button type='button' className="delete-btn" onClick={() => deleteGroceryItem(id)}>
                     <FaTrash /> 
                     </button>
                     
