@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Grocery_List from './Grocery-List'; 
 import instance from './axios';
+import Alert from './Alert';
 
 function Main() {
 
@@ -8,23 +9,21 @@ function Main() {
     const [groceryList, setGroceryList] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedID, setSelecetdID] = useState(null);
+    const [alert, setAlert] = useState({show: false, msg: '', type: ''});
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
         if (!item) {
+            displayAlert(true, 'please enter an item', 'danger')
 
         } else if (item && isEditing) {
             groceryList.map(groceryItem => {
                 if (groceryItem.id === selectedID) {
-                   // console.log({...groceryItem, name: item})
-                   console.log({...groceryItem, name: item})
-                   edit(selectedID, {...groceryItem, name: item})
+                    editGroceryItem(selectedID, {...groceryItem, name: item})
                 }
-      
             })
-           
-            //edit(selectedID, updatedItem)
+
             setItem("");
             setIsEditing(false);
             setSelecetdID(null);
@@ -39,7 +38,6 @@ function Main() {
             addGroceryItem(newItem);
             setItem("");
         }
-
         
     }
 
@@ -49,14 +47,13 @@ function Main() {
           setGroceryList(request.data);
         }
         fetchData();
-    }, [])
+    }, [groceryList])
 
 
     const addGroceryItem = (item) => {
         instance.post('/add', item)
         .then(response => {
-            console.log("Status: ", response.status);
-            console.log("Data: ", response.data);
+            displayAlert(true, 'item added successfully', response.data)
         }).catch(error => {
             console.error('Something went wrong!', error);
         });
@@ -65,26 +62,24 @@ function Main() {
     const deleteGroceryItem = (id) => {
         instance.delete(`/${id}`)
         .then(response => {
-            console.log("Status: ", response.status);
-            console.log("Data: ", response.data);
+            displayAlert(true, 'item deleted successfully', response.data)
         }).catch(error => {
             console.error('Something went wrong!', error);
         });
+
     }
 
-    const editGroceryItem = (id) => {
+    const onEditGroceryItem = (id) => {
         const specificItem = groceryList.find(grocery => grocery.id === id);
         setIsEditing(true);
         setSelecetdID(id);
         setItem(specificItem.name);
-        console.log('name', specificItem, ' id ', id);
     }
 
-    const edit = (id, updatedItem) => {
+    const editGroceryItem = (id, updatedItem) => {
         instance.put(`/${id}`, updatedItem)
         .then(response => {
-            console.log("Status: ", response.status);
-            console.log("Data: ", response.data);
+            displayAlert(true, 'item updated successfully', response.data)
         }).catch(error => {
             console.error('Something went wrong!', error);
         });
@@ -93,16 +88,24 @@ function Main() {
     const clearAll = () => {
         instance.delete(`/delete`)
         .then(response => {
-            console.log("Status: ", response.status);
-            console.log("Data: ", response.data);
+            displayAlert(true, 'items removed', response.data)
         }).catch(error => {
             console.error('Something went wrong!', error);
         });
     }
 
+    const displayAlert = (show = false, msg = "", type = "") => {
+        setAlert ({
+            show,
+            msg, 
+            type
+        })
+    }
+
     return ( 
         <section className='section-center'>
         <form className='grocery-form' onSubmit={handleSubmit} >
+        {alert.show && <Alert {...alert} />}
         <h3>grocery bud</h3>
         <div className="form-control">
             <input 
@@ -121,7 +124,7 @@ function Main() {
             <Grocery_List 
                 groceryList = { groceryList } 
                 deleteGroceryItem = { deleteGroceryItem } 
-                editGroceryItem = { editGroceryItem }
+                onEditGroceryItem = { onEditGroceryItem }
                 />
             <button className="clear-btn" onClick={() => clearAll()}>
                 clear items
