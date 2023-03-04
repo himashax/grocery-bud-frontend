@@ -6,24 +6,41 @@ function Main() {
 
     const [item, setItem] = useState("");
     const [groceryList, setGroceryList] = useState([]);
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedID, setSelecetdID] = useState(null);
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const newItem  = {
-            id: new Date().getTime().toString(),
-            name: item
+        if (!item) {
+
+        } else if (item && isEditing) {
+            groceryList.map(groceryItem => {
+                if (groceryItem.id === selectedID) {
+                   // console.log({...groceryItem, name: item})
+                   console.log({...groceryItem, name: item})
+                   edit(selectedID, {...groceryItem, name: item})
+                }
+      
+            })
+           
+            //edit(selectedID, updatedItem)
+            setItem("");
+            setIsEditing(false);
+            setSelecetdID(null);
+
+        } else {
+            const newItem  = {
+                id: new Date().getTime().toString(),
+                name: item
+            }
+    
+            console.log('new ', newItem)
+            addGroceryItem(newItem);
+            setItem("");
         }
 
-        instance.post('/add', newItem)
-        .then(response => {
-            console.log("Status: ", response.status);
-            console.log("Data: ", response.data);
-        }).catch(error => {
-            console.error('Something went wrong!', error);
-        });
-
-        setItem("");
+        
     }
 
     useEffect(() => {
@@ -32,7 +49,18 @@ function Main() {
           setGroceryList(request.data);
         }
         fetchData();
-    }, [groceryList])
+    }, [])
+
+
+    const addGroceryItem = (item) => {
+        instance.post('/add', item)
+        .then(response => {
+            console.log("Status: ", response.status);
+            console.log("Data: ", response.data);
+        }).catch(error => {
+            console.error('Something went wrong!', error);
+        });
+    }
 
     const deleteGroceryItem = (id) => {
         instance.delete(`/${id}`)
@@ -44,7 +72,33 @@ function Main() {
         });
     }
 
+    const editGroceryItem = (id) => {
+        const specificItem = groceryList.find(grocery => grocery.id === id);
+        setIsEditing(true);
+        setSelecetdID(id);
+        setItem(specificItem.name);
+        console.log('name', specificItem, ' id ', id);
+    }
 
+    const edit = (id, updatedItem) => {
+        instance.put(`/${id}`, updatedItem)
+        .then(response => {
+            console.log("Status: ", response.status);
+            console.log("Data: ", response.data);
+        }).catch(error => {
+            console.error('Something went wrong!', error);
+        });
+    }
+
+    const clearAll = () => {
+        instance.delete(`/delete`)
+        .then(response => {
+            console.log("Status: ", response.status);
+            console.log("Data: ", response.data);
+        }).catch(error => {
+            console.error('Something went wrong!', error);
+        });
+    }
 
     return ( 
         <section className='section-center'>
@@ -56,8 +110,8 @@ function Main() {
                 className='grocery' 
                 placeholder='e.g. eggs'
                 value={ item }
-                onChange={(e) => setItem(e.target.value)} />   
-            <button type='submit' className="submit-btn"> Submit
+                onChange={(e) => setItem(e.target.value)} />    
+            <button type='submit' className="submit-btn"> { isEditing ? 'Edit' : 'Submit' }
             </button>
         </div>
     </form>
@@ -66,8 +120,10 @@ function Main() {
       <div className="grocery-container">
             <Grocery_List 
                 groceryList = { groceryList } 
-                deleteGroceryItem = { deleteGroceryItem } />
-            <button className="clear-btn">
+                deleteGroceryItem = { deleteGroceryItem } 
+                editGroceryItem = { editGroceryItem }
+                />
+            <button className="clear-btn" onClick={() => clearAll()}>
                 clear items
             </button>
         </div>
